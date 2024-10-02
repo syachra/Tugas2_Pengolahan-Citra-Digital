@@ -1,0 +1,131 @@
+import numpy as np
+import imageio
+import matplotlib.pyplot as plt
+
+# Fungsi untuk menampilkan gambar
+def show_image(img, title):
+    if img is None:
+        print("Gambar tidak ditemukan atau tidak dapat ditampilkan.")
+        return
+    plt.imshow(img, cmap='gray' if len(img.shape) == 2 else None)
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
+
+# Fungsi untuk membaca gambar
+def load_image(path):
+    try:
+        return imageio.imread(path)
+    except FileNotFoundError:
+        print(f"Gambar {path} tidak ditemukan.")
+        return None
+
+# Fungsi untuk mengekstrak channel R, G, B
+def extract_channels(image):
+    if image is None:
+        return None, None, None
+    R = image[:, :, 0]
+    G = image[:, :, 1]
+    B = image[:, :, 2]
+    return R, G, B
+
+# Fungsi untuk konversi ke grayscale
+def to_grayscale(image):
+    R, G, B = extract_channels(image)
+    if R is None or G is None or B is None:
+        return None
+    grayscale = 0.2989 * R + 0.5870 * G + 0.1140 * B
+    return grayscale.astype(np.uint8)
+
+# Fungsi untuk konversi ke threshold biner
+def to_threshold(grayscale_image, threshold=128):
+    if grayscale_image is None:
+        return None
+    binary_image = grayscale_image > threshold
+    return binary_image.astype(np.uint8) * 255
+
+# Fungsi untuk menampilkan channel dengan warna sesuai (merah untuk R, hijau untuk G, biru untuk B)
+def display_color_channel(image, channel):
+    R, G, B = extract_channels(image)
+    if R is None or G is None or B is None:
+        return None
+
+    img = np.zeros_like(image)
+    if channel == 'R':
+        img[:, :, 0] = R  # Channel merah diisi, channel lain 0
+    elif channel == 'G':
+        img[:, :, 1] = G  # Channel hijau diisi, channel lain 0
+    elif channel == 'B':
+        img[:, :, 2] = B  # Channel biru diisi, channel lain 0
+    return img
+
+# Fungsi untuk menampilkan menu dan memproses gambar sesuai pilihan pengguna
+def process_image():
+    # Daftar gambar yang tersedia
+    image_options = {
+        "1": "daun_pepaya.jpg",
+        "2": "daun_singkong.jpg",
+        "3": "daun_kenikir.jpg"
+    }
+
+    # Menampilkan daftar pilihan gambar
+    print("Pilih gambar yang ingin diproses:")
+    for key, value in image_options.items():
+        print(f"{key}. {value}")
+
+    # Meminta input pengguna untuk memilih gambar
+    image_choice = input("Masukkan nomor gambar (1/2/3): ")
+    image_path = image_options.get(image_choice)
+
+    if not image_path:
+        print("Pilihan gambar tidak valid.")
+        return
+
+    # Load gambar yang dipilih
+    image = load_image(image_path)
+
+    if image is None:
+        print("Gagal memuat gambar.")
+        return
+
+    # Pilihan untuk menampilkan gambar asli atau tidak
+    display_original = input("Apakah Anda ingin menampilkan gambar asli? (y/n): ").lower()
+
+    if display_original == 'y':
+        show_image(image, f"Gambar Asli: {image_path}")
+
+    # Menampilkan menu pilihan operasi
+    print("\nPilih operasi yang ingin dilakukan:")
+    print("1. Tampilkan Channel R (Red)")
+    print("2. Tampilkan Channel G (Green)")
+    print("3. Tampilkan Channel B (Blue)")
+    print("4. Konversi ke Grayscale")
+    print("5. Konversi ke Threshold (Biner)")
+
+    # Meminta input pengguna untuk memilih operasi
+    operation_choice = input("Masukkan nomor operasi (1/2/3/4/5): ")
+
+    # Eksekusi sesuai pilihan operasi
+    if operation_choice == "1":
+        img = display_color_channel(image, 'R')
+        show_image(img, f"Channel R (Red) - {image_path}")
+    elif operation_choice == "2":
+        img = display_color_channel(image, 'G')
+        show_image(img, f"Channel G (Green) - {image_path}")
+    elif operation_choice == "3":
+        img = display_color_channel(image, 'B')
+        show_image(img, f"Channel B (Blue) - {image_path}")
+    elif operation_choice == "4":
+        grayscale_image = to_grayscale(image)
+        show_image(grayscale_image, f"Grayscale - {image_path}")
+    elif operation_choice == "5":
+        grayscale_image = to_grayscale(image)
+        threshold = int(input("Masukkan nilai threshold (0-255): "))
+        binary_image = to_threshold(grayscale_image, threshold)
+        show_image(binary_image, f"Threshold Biner (T={threshold}) - {image_path}")
+    else:
+        print("Pilihan operasi tidak valid.")
+
+# Main Program
+if __name__ == "__main__":
+    process_image()
